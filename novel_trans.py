@@ -249,8 +249,6 @@ def getopt():
     parser.add_argument(
         '--process',help='set the num of cuffmerge process',dest='process',type=int,default=10)
     parser.add_argument(
-        '--prefix',help='output file prefix',dest='prefix',type=str,default='result')
-    parser.add_argument(
         '--cpu',help='set the num of blastx threads',dest='cpu',type=int,default=10)
     parser.add_argument(
         '--resume',help='resume file',dest='resume',type=str,default='novel_trans.resume')    
@@ -295,7 +293,6 @@ def main():
     svm_scale=check_software('svm-scale') if check_software('svm-scale') else config.svm_scale
     svm_predict2=check_software('svm-predict2') if check_software('svm-predict2') else config.svm_predict2
     samtools=check_software('samtools') if check_software('samtools') else config.samtools
-    prefix=args.prefix
     outdir=args.outdir
     check_dir(outdir)
     resume_num=0
@@ -313,12 +310,14 @@ def main():
     if count_resume>=resume_num:run_cmd(cmd)
     count=0
     for line in open('%s/logs/run.log'%outdir):
-        if not count:continue
+        if not count:
+            count+=1
+            continue
         if count==1:check_dir(outdir+'/tmp')
         count_resume+=1
         w.write('%d\n'%count_resume)
-        if count_resume>=resume_num:run_cmd(cmd)
-    cmd='awk \'{if($3=="j"||$3=="u"||$3=="o"||$3=="i") print $2"\t"$5}\' %s/%s.merged.gtf.tmap > %s/gene_transcript.list'%(outdir,prefix,outdir)
+        if count_resume>=resume_num:run_cmd(line.strip())
+    cmd='awk \'{if($3=="j"||$3=="u"||$3=="o"||$3=="i") print $2"\t"$5}\' %s/tmp_meta_asm.merged.gtf.tmap > %s/gene_transcript.list'%(outdir,outdir)
     count_resume+=1
     w.write('%d\n'%count_resume)
     if count_resume>=resume_num:run_cmd(cmd)
