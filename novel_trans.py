@@ -247,6 +247,8 @@ def getopt():
     parser.add_argument(
         '-o',help='ouput dir',type=str,dest='outdir',default='.')
     parser.add_argument(
+        '--fasta_format',help='if input fasta file not ncbi format,then use it[y|n]',default='n',type=str,dest='format')
+    parser.add_argument(
         '--process',help='set the num of cuffmerge process',dest='process',type=int,default=10)
     parser.add_argument(
         '--cpu',help='set the num of blastx threads',dest='cpu',type=int,default=10)
@@ -279,6 +281,14 @@ def noval_transcript_stat(trans_file,cod_file,outdir):
     w.write('total_novel_transcript_num\tcoding_transcript_num\tnoncoding_transcript_num\tnovel_isoform_num\tnovel_gene_num\n%d\t%d\t%d\t%d\t%d'%(total_novel_transcript_num,coding_transcript_num,noncoding_transcript_num,novel_isoform_num,novel_gene_num))
     w.close()
 
+def transe_fasta_format(file,outdir,samtools):
+    for line in open(file,'r'):
+        if line.startswith('>'):
+            line=re.split(r'\s+',line.strip())[0].lstrip('>')
+            cmd='%s faidx %s %s >>%s/novel_trans.fasta'%(samtools,file,line,outdir)
+            run_cmd(cmd)
+    return '%s/novel_trans.fasta'%(outdir)
+    
 def main():
     args=getopt()
     config=Config()
@@ -302,6 +312,7 @@ def main():
         w=open('%s/%s'%(outdir,args.resume),'w')
     else:
         w=open('%s/%s'%(outdir,args.resume),'w')
+    args.input=transe_fasta_format(args.input,outdir,samtools) if args.format=='y' else args.input
     ##############merge stringtie####################
     count_resume=0
     cmd='%s -o %s -p %s -s %s %s'%(cuffmerge,args.outdir,args.process,args.input,args.gtf_list)
