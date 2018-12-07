@@ -198,7 +198,7 @@ def trans_file_get(merged_gtf,ref_fasta,gene_list,outdir):
     for line in open(ref_fasta,'r'):
         line=line.strip()
         if line.startswith('>'):
-            key=line.replace(">","")
+            key=re.split(r'\s+',line)[0].lstrip('>')
             dict_result[key]=[]
             continue
         dict_result[key].append(line)
