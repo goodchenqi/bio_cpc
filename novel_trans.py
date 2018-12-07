@@ -249,6 +249,8 @@ def getopt():
     parser.add_argument(
         '--fasta_format',help='if input fasta file not ncbi format,then use it[y|n]',default='n',type=str,dest='format')
     parser.add_argument(
+        '--nr_database',help='input nr_database',dest='database',type=str)
+    parser.add_argument(
         '--process',help='set the num of cuffmerge process',dest='process',type=int,default=10)
     parser.add_argument(
         '--cpu',help='set the num of blastx threads',dest='cpu',type=int,default=10)
@@ -260,6 +262,9 @@ def getopt():
         sys.exit(1)
     elif not args.gtf_list:
         print('gtf list file must be given!!!')
+        sys.exit(1)
+    elif not args.database:
+        print('nr databse must be given!!!')
         sys.exit(1)
     return args
 
@@ -288,7 +293,7 @@ def transe_fasta_format(file,outdir,samtools):
             cmd='%s faidx %s %s >>%s/novel_trans.fasta'%(samtools,file,line,outdir)
             run_cmd(cmd)
     return '%s/novel_trans.fasta'%(outdir)
-    
+
 def main():
     args=getopt()
     config=Config()
@@ -338,7 +343,7 @@ def main():
     predict_outdir=outdir+'/cpc'
     check_dir(predict_outdir)
     #######step1:blastx######
-    cmd='%s -query %s/transcript.fa -evalue 1e-10 -ungapped -threshold 14 -num_threads %s -comp_based_stats F -db %s -outfmt 6 > %s/blastx.table'%(blastx,outdir,args.cpu,config.nr_database,predict_outdir)
+    cmd='%s -query %s/transcript.fa -evalue 1e-10 -ungapped -threshold 14 -num_threads %s -comp_based_stats F -db %s -outfmt 6 > %s/blastx.table'%(blastx,outdir,args.cpu,args.database,predict_outdir)
     count_resume+=1
     w.write('%d\n'%count_resume)
     if count_resume>=resume_num:run_cmd(cmd)
@@ -368,7 +373,7 @@ def main():
     count_resume+=1
     w.write('%d\n'%count_resume)
     if count_resume>=resume_num:run_cmd(cmd)
-    cmd='cat %s/coding_transcript.fa %s>%s/%s'%(outdir,args.input,outdir,args.input+'.new.fa')
+    cmd='cat %s/coding_transcript.fa %s>%s/%s'%(outdir,args.input,outdir,args.input.split('/')[-1]+'.new.fa')
     count_resume+=1
     w.write('%d\n'%count_resume)
     if count_resume>=resume_num:run_cmd(cmd)
